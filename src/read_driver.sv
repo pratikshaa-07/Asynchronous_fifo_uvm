@@ -20,20 +20,23 @@ class read_driver extends uvm_driver#(rd_seq_item);
    vif.rd_drv_cb.rinc<=req.rinc;
    i++;
    `uvm_info("DRIVER", $sformatf("[READ-DRIVER-%0d] SENT: rinc = %0d",i,req.rinc), UVM_LOW)
-   @(posedge vif.rd_drv_cb);
+    repeat(2)
+      begin
+        @(vif.rd_drv_cb);
+      end
  endtask
 
  task run_phase(uvm_phase phase);
    super.run_phase(phase);
-   repeat(1) @(posedge vif.rd_drv_cb);
-     begin
+   repeat(3) 
+      begin
+        @(vif.rd_drv_cb);
+     end
        forever
          begin
-         seq_item_port.get_next_item(req);
-         drive();
-         seq_item_port.item_done();
+           seq_item_port.get_next_item(req);
+           drive();
+           seq_item_port.item_done();
          end
-     end
- endtask
-               
+ endtask        
 endclass

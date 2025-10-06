@@ -1,47 +1,99 @@
-`include"define.sv"
-`include"uvm_macros.svh"
-interface inf(input wclk,rclk,wrst_n,rrst_n);
+`include "define.sv"
+`include "uvm_macros.svh"
+
+interface inf(input wclk, rclk, wrst_n, rrst_n);
  
-  //inputs
+  // inputs
   bit   [`DSIZE-1:0]  wdata;
-  bit   winc;
-  bit   rinc;
+  bit                 winc;
+  bit                 rinc;
   
-  //outputs
-  logic   wfull;
-  logic   rempty;
-  logic [`DSIZE-1:0]  rdata;
-  
-  //write-driver
+  // outputs
+  logic               wfull;
+  logic               rempty;
+  logic  [`DSIZE-1:0] rdata;
+
+  // write-driver
   clocking wr_drv_cb @(posedge wclk);
     default input #0 output #0;
-    input wfull;
-    output wdata,winc;
+    input  wfull, wrst_n;
+    output wdata, winc;
   endclocking
   
-  //read-driver
+  // Read-driver
   clocking rd_drv_cb @(posedge rclk);
     default input #0 output #0;
-    input rdata,rempty;
+    input  rdata, rempty, rrst_n;
     output rinc;
   endclocking
   
-  //write-monitor
-  clocking wr_mon_cb @(posedge rclk);
+  // Write-monitor
+  clocking wr_mon_cb @(posedge wclk);
     default input #0 output #0;
-    input wdata,winc,wfull;
+    input  wdata, winc, wfull, wrst_n;
   endclocking
   
-  //read-monitor
+  // Read-monitor
   clocking rd_mon_cb @(posedge rclk);
     default input #0 output #0;
-    input rinc,rdata,rempty;
+    input  rinc, rdata, rempty, rrst_n;
   endclocking
-  
-  modport WR_DRV(clocking wr_drv_cb);
-  modport WR_MON(clocking wr_mon_cb);
-  modport RD_DRV(clocking rd_drv_cb);
-  modport RD_MON(clocking rd_mon_cb);
+
+  modport WR_DRV (clocking wr_drv_cb, input wrst_n);
+  modport WR_MON (clocking wr_mon_cb, input wrst_n);
+  modport RD_DRV (clocking rd_drv_cb, input rrst_n);
+  modport RD_MON (clocking rd_mon_cb, input rrst_n);
+
+  // ==========================================================
+  //                     ASSERTIONS
+  // ==========================================================
+
+  property p1;
+    @(posedge wclk) disable iff (!wrst_n)
+      winc |-> !($isunknown(wdata));
+  endproperty
+      
+  wdata_check:
+    assert property (p1)
+      $info("ASSERTION-1 PASSED: WDATA CHECK");
+    else
+      $error("ASSERTION-1 FAILED: WDATA CHECK");
+      
+
+  property p2;
+    @(posedge wclk) disable iff (!wrst_n)
+      (winc && wfull) |-> $stable(wdata);
+  endproperty
+        
+  wdata_stability_check:
+    assert property (p2)
+      $info("ASSERTION-2 PASSED: WDATA STABILITY CHECK");
+    else
+      $error("ASSERTION-2 FAILED: WDATA STABILITY CHECK");
+      
+
+  property p3;
+    @(posedge rclk) disable iff (!rrst_n)
+      (rinc && !rempty) |-> !($isunknown(rdata));
+  endproperty
    
-endinterface
+  rdata_check:
+    assert property (p3)
+      $info("ASSERTION-3 PASSED: RDATA CHECK");
+    else
+      $error("ASSERTION-3 FAILED: RDATA CHECK");
+      
   
+  property p4;
+    @(posedge rclk) disable iff (!rrst_n)
+      !(rempty && wfull);
+  endproperty
+ 
+  full_empty_check:
+    assert property (p4)
+      $info("ASSERTION-4 PASSED: FULL & EMPTY ");
+    else
+      $error("ASSERTION-4 FAILED: FULL & EMPTY");
+
+endinterface
+

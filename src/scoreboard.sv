@@ -1,13 +1,15 @@
+
 class scoreboard extends uvm_scoreboard;
 
   uvm_tlm_analysis_fifo#(rd_seq_item) read_fifo;
   uvm_tlm_analysis_fifo#(wrt_seq_item) write_fifo;
 
-  int depth = 1 << `ASIZE;
+  int depth = 1 << `ASIZE-1;
   bit [`DSIZE-1:0] fifo_mem[$];
   bit [`DSIZE-1:0] rd_op;
 
-  int pass_count, fail_count;
+  int read_pass_count, read_fail_count;
+  int write_pass_count, write_fail_count;
 
   `uvm_component_utils(scoreboard)
 
@@ -15,8 +17,11 @@ class scoreboard extends uvm_scoreboard;
     super.new(name,parent);
     read_fifo  = new("read_fifo", this);
     write_fifo = new("write_fifo", this);
-    pass_count = 0;
-    fail_count = 0;
+    read_pass_count = 0;
+    read_fail_count = 0;
+    write_fail_count = 0;
+    write_pass_count = 0;
+
   endfunction
 
   function void write(uvm_object t);
@@ -38,7 +43,8 @@ class scoreboard extends uvm_scoreboard;
           read_fifo.get(read_trans);
           compare_read(read_trans);
         end
-      join
+      join_any
+       // disable fork;
     end
   endtask
 
@@ -47,25 +53,28 @@ class scoreboard extends uvm_scoreboard;
     if (tr.winc) begin
       if (fifo_mem.size() < depth && tr.wfull==0) begin
         fifo_mem.push_back(tr.wdata);
-        pass_count++;
-        `uvm_info("SCOREBOARD-WRITE",
-                  $sformatf("WRITE %0d COMPLETED, PASS (size=%0d)",
+        write_pass_count++;
+        `uvm_info("SCOREBOARD-WRITE",$sformatf("WRITE %0d COMPLETED, PASS (size=%0d)",
                             tr.wdata, fifo_mem.size()), UVM_LOW)
+        $display("----------------------------------------------------------------------------------");
       end
       else if (fifo_mem.size()==depth && tr.wfull==1) begin
-        pass_count++;
-        `uvm_info("SCOREBOARD-WRITE",
-                  "WRITE ignored (model full), PASS", UVM_LOW)
+        write_pass_count++;
+        `uvm_info("SCOREBOARD-WRITE",$sformatf("WRITE ignored model full (size =%0d), PASS ",fifo_mem.size()), UVM_LOW)
+        $display("----------------------------------------------------------------------------------");
       end
-      else if (fifo_mem.size()==depth && tr.wfull==0) begin
-        fail_count++;
-        `uvm_error("SCOREBOARD-WRITE",
-                   "DUT failed to assert wfull at full depth")
+      else if (fifo_mem.size()>=depth && tr.wfull==0) 
+        begin
+        write_fail_count++;
+          `uvm_error("SCOREBOARD-WRITE",$sformatf("DUT failed to assert wfull at full depth (size = %0d), FAIL",fifo_mem.size()))
+        $display("----------------------------------------------------------------------------------");
       end
-      else begin
-        fail_count++;
-        `uvm_error("SCOREBOARD-WRITE",
-                   "DUT asserted wfull too early")
+      else 
+        begin
+        write_fail_count++;
+          `uvm_error("SCOREBOARD-WRITE",$sformatf("DUT asserted wfull too early,FAIL",fifo_mem.size()))
+        $display("----------------------------------------------------------------------------------");
+
       end
     end
   endtask
@@ -77,39 +86,41 @@ class scoreboard extends uvm_scoreboard;
       if (fifo_mem.size() > 0 && tr.rempty==0) begin
         rd_op = fifo_mem.pop_front();
         if (tr.rdata == rd_op) begin
-          pass_count++;
-          `uvm_info("SCOREBOARD-READ",
-                    $sformatf("READ DATA MATCH: %0d, PASS", tr.rdata), UVM_LOW)
+          read_pass_count++;
+          `uvm_info("[SCOREBOARD-READ]",$sformatf("READ DATA MATCH: %0d, PASS", tr.rdata), UVM_LOW)
+        $display("----------------------------------------------------------------------------------");
         end
         else begin
-          fail_count++;
-          `uvm_error("SCOREBOARD-READ",
-                     $sformatf("READ MISMATCH: DUT=%0d, EXP=%0d",
-                               tr.rdata, rd_op))
+          read_fail_count++;
+          `uvm_error("[SCOREBOARD-READ]",$sformatf("READ MISMATCH: DUT=%0d, EXP=%0d",tr.rdata, rd_op))
+        $display("----------------------------------------------------------------------------------");
         end
       end
-      else if (fifo_mem.size()==0 && tr.rempty==1) begin
-        pass_count++;
-        `uvm_info("SCOREBOARD-READ",
-                  "READ ignored (model empty), PASS", UVM_LOW)
+      else if (fifo_mem.size()==0 && tr.rempty==1) 
+        begin
+        read_pass_count++;
+          `uvm_info("[SCOREBOARD-READ]",$sformatf("READ ignored model empty (size=%0d), PASS",fifo_mem.size()), UVM_LOW)
+        $display("----------------------------------------------------------------------------------");
       end
-      else if (fifo_mem.size()==0 && tr.rempty==0) begin
-        fail_count++;
-        `uvm_error("SCOREBOARD-READ",
-                   "DUT failed to assert rempty when empty")
+      else if (fifo_mem.size()==0 && tr.rempty==0) 
+        begin
+        read_fail_count++;
+          `uvm_error("[SCOREBOARD-READ]","DUT failed to assert rempty when empty")
+        $display("----------------------------------------------------------------------------------");
       end
       else if (fifo_mem.size()!=0 && tr.rempty==1) begin
-        fail_count++;
-        `uvm_error("SCOREBOARD-READ",
-                   "DUT asserted rempty too early")
+        read_fail_count++;
+        rd_op = fifo_mem.pop_front();
+        `uvm_error("[SCOREBOARD-READ]",$sformatf("DUT asserted rempty too early (size=%0d), FAIL",fifo_mem.size()))
+        $display("-----------------------------------------------------------------------------------");
       end
     end
   endtask
 
-  // report
+  // report for pass fail count
   function void report_phase(uvm_phase phase);
     super.report_phase(phase);
-    `uvm_info("SCOREBOARD-SUMMARY",$sformatf("FINAL RESULT: PASS COUNT = %0d, FAIL COUNT = %0d",pass_count, fail_count), UVM_NONE)
+    `uvm_info("SCOREBOARD-SUMMARY",$sformatf("FINAL RESULT: READ PASS COUNT = %0d | READ FAIL COUNT = %0d  | WRITE PASS COUNT = %0d | WRITE FAIL COUNT = %0d",read_pass_count, read_fail_count,write_pass_count,write_fail_count), UVM_NONE)
   endfunction
 
 endclass

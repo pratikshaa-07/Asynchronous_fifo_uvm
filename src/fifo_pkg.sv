@@ -22,7 +22,7 @@ package fifo_pkg;
 `include "write_agent.sv"
 `include "read_agent.sv"
 
-// `include "subscriber.sv"
+`include "subscriber.sv"
 `include "scoreboard.sv"
 
 `include "virtual_sequencer.sv"

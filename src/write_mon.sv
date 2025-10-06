@@ -9,6 +9,7 @@ class write_monitor extends uvm_monitor;
   
   function new(string name="",uvm_component parent);
     super.new(name,parent);
+    write_port = new("write_port",this);
   endfunction
   
   function void build_phase(uvm_phase phase);
@@ -19,19 +20,23 @@ class write_monitor extends uvm_monitor;
   
   task run_phase(uvm_phase phase);
     super.run_phase(phase);
-    repeat(2)
-      begin
-        @(posedge vif.wr_mon_cb);
-      end
+    repeat(4)
+       begin
+         @(vif.wr_mon_cb);
+       end
     forever
       begin
-        req=wrt_seq_item::type_id::create(req);
+        req=wrt_seq_item::type_id::create("req");
         req.winc  = vif.wr_mon_cb.winc;
         req.wfull = vif.wr_mon_cb.wfull;
-        `uvm_info("WRITE MONITOR", $sformatf("[WRITE-MONITOR-%0d] CAPTURED: winc = %0d wfull = %0d",i,req.winc,req.wfull), UVM_LOW);
-        write_port.write(req);
+        req.wdata = vif.wr_mon_cb.wdata;
         i++;
-        repeat (2) @(posedge vif.wr_mon_cb);
+        `uvm_info("WRITE MONITOR", $sformatf("[WRITE-MONITOR-%0d] CAPTURED: winc = %0d wfull = %0d wdata =%0d",i,req.winc,req.wfull,req.wdata), UVM_LOW);
+        write_port.write(req);
+        repeat (1) 
+          begin
+          @(vif.wr_mon_cb);
+        end
       end
   endtask
 endclass
