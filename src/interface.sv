@@ -44,10 +44,12 @@ interface inf(input wclk, rclk, wrst_n, rrst_n);
   modport RD_DRV (clocking rd_drv_cb, input rrst_n);
   modport RD_MON (clocking rd_mon_cb, input rrst_n);
 
-  // ==========================================================
-  //                     ASSERTIONS
-  // ==========================================================
+  // ==========================================================//
+  //                     ASSERTIONS                            //
+  // ==========================================================//
 
+
+  //wdata check for unknown
   property p1;
     @(posedge wclk) disable iff (!wrst_n)
       winc |-> !($isunknown(wdata));
@@ -59,19 +61,19 @@ interface inf(input wclk, rclk, wrst_n, rrst_n);
     else
       $error("ASSERTION-1 FAILED: WDATA CHECK");
       
-
+//stablity check for rdata when rinc goes from 1-0
   property p2;
-    @(posedge wclk) disable iff (!wrst_n)
-      (winc && wfull) |-> $stable(wdata);
+    @(posedge rclk) disable iff (!rrst_n)
+      ($fell(rinc) && (!rempty))|->$stable(rdata);
   endproperty
         
- /* wdata_stability_check:
+   rdata_stability_check:
     assert property (p2)
-      $info("ASSERTION-2 PASSED: WDATA STABILITY CHECK");
+      $info("ASSERTION-2 PASSED: RDATA STABILITY CHECK");
     else
-      $error("ASSERTION-2 FAILED: WDATA STABILITY CHECK");
-      */
-
+      $error("ASSERTION-2 FAILED: RDATA STABILITY CHECK");
+      
+//radata check for unknown
   property p3;
     @(posedge rclk) disable iff (!rrst_n)
       (rinc && !rempty) |-> !($isunknown(rdata));
@@ -83,7 +85,7 @@ interface inf(input wclk, rclk, wrst_n, rrst_n);
     else
       $error("ASSERTION-3 FAILED: RDATA CHECK");
       
-  
+ //empty and full should not happen at same time
   property p4;
     @(posedge rclk) disable iff (!rrst_n)
       !(rempty && wfull);
@@ -95,6 +97,7 @@ interface inf(input wclk, rclk, wrst_n, rrst_n);
     else
       $error("ASSERTION-4 FAILED: FULL & EMPTY");
 
+  //wfull high check
   property p5;
   @(posedge wclk) disable iff (!rrst_n)
   (winc && !rinc)[*16]|->wfull;
@@ -105,5 +108,18 @@ interface inf(input wclk, rclk, wrst_n, rrst_n);
       $info("ASSERTION-5 PASSED: FULL CHECK ");
     else
       $error("ASSERTION-5 FAILED: FULL CHECK");
+
+  //empty check
+  property p6;
+  @(posedge rclk) disable iff (!wrst_n)
+  (!winc && rinc)[*16]|->rempty;
+  endproperty
+
+  rempty_check:
+      assert property (p6)
+         $info("ASSERTION-6 PASSED: EMPTY CHECK");
+      else
+          $error("ASSERTION-6 FAILED:EMPTY CHECK");
+
 endinterface
 
