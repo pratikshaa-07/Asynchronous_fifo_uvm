@@ -1,0 +1,9 @@
+QuestaSim vlog 10.6c Compiler 2017.07 Jul 25 2017
+Start time: 12:02:24 on Oct 07,2025
+vlog -sv "+acc" "+cover" "+fcover" -l async_ff.log top.sv 
+** Note: (vlog-2286) top.sv(3): Using implicit +incdir+/tools/mentor/questasim_10.6c/questasim/uvm-1.1d/../verilog_src/uvm-1.1d/src from import uvm_pkg
+** Error: (vlog-13069) ** while parsing file included at top.sv(4)
+** while parsing file included at fifo_pkg.sv(25)
+** at subscriber.sv(31): near "covergroup": syntax error, unexpected "SystemVerilog keyword 'covergroup'", expecting IDENTIFIER or '='.
+End time: 12:02:24 on Oct 07,2025, Elapsed time: 0:00:00
+Errors: 1, Warnings: 0

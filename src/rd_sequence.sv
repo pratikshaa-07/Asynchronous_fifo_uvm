@@ -7,7 +7,7 @@ class rd_base_seq extends uvm_sequence #(rd_seq_item);
   endfunction
   
   virtual task body();
-    repeat(20)
+    repeat(100)
       begin
         req = rd_seq_item::type_id::create("req");
         wait_for_grant();
@@ -28,7 +28,7 @@ class no_read extends uvm_sequence #(rd_seq_item);
   endfunction
   
   virtual task body();
-    repeat(10)
+    repeat(100)
       begin
         `uvm_do_with(req,{req.rinc==1'b0;})
       end
@@ -45,7 +45,7 @@ class full_read extends uvm_sequence #(rd_seq_item);
   endfunction
   
   virtual task body();
-    repeat(10)
+    repeat(100)
       begin
         `uvm_do_with(req,{req.rinc==1'b1;})
       end
@@ -63,7 +63,7 @@ class rd_dist extends uvm_sequence #(rd_seq_item);
   endfunction
   
   virtual task body();
-    repeat(10)
+    repeat(100)
       begin
         `uvm_do_with(req, { req.rinc dist { 1 := 40, 0 := 60 }; })
       end

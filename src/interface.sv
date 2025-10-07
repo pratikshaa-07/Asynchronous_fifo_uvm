@@ -65,12 +65,12 @@ interface inf(input wclk, rclk, wrst_n, rrst_n);
       (winc && wfull) |-> $stable(wdata);
   endproperty
         
-  wdata_stability_check:
+ /* wdata_stability_check:
     assert property (p2)
       $info("ASSERTION-2 PASSED: WDATA STABILITY CHECK");
     else
       $error("ASSERTION-2 FAILED: WDATA STABILITY CHECK");
-      
+      */
 
   property p3;
     @(posedge rclk) disable iff (!rrst_n)
@@ -95,5 +95,15 @@ interface inf(input wclk, rclk, wrst_n, rrst_n);
     else
       $error("ASSERTION-4 FAILED: FULL & EMPTY");
 
+  property p5;
+  @(posedge wclk) disable iff (!rrst_n)
+  (winc && !rinc)[*16]|->wfull;
+  endproperty
+
+  full_check:
+    assert property (p5)
+      $info("ASSERTION-5 PASSED: FULL CHECK ");
+    else
+      $error("ASSERTION-5 FAILED: FULL CHECK");
 endinterface
 

@@ -33,7 +33,7 @@ class write_monitor extends uvm_monitor;
         i++;
         `uvm_info("WRITE MONITOR", $sformatf("[WRITE-MONITOR-%0d] CAPTURED: winc = %0d wfull = %0d wdata =%0d",i,req.winc,req.wfull,req.wdata), UVM_LOW);
         write_port.write(req);
-        repeat (1) 
+        repeat (2) 
           begin
           @(vif.wr_mon_cb);
         end

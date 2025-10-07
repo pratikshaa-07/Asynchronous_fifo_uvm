@@ -1,5 +1,5 @@
  import uvm_pkg::*;  
-`include "uvm_pkg.sv"
+//`include "uvm_pkg.sv"
 `include "uvm_macros.svh"
 `include "fifo_pkg.sv"
 `include "interface.sv"
@@ -21,11 +21,11 @@ module top;
   initial begin 
     wclk = 0;
     rclk = 0;
-    rrst_n = 0;
-    wrst_n = 0;
+    rrst_n = 1;
+    wrst_n = 1;
     
-    #20 rrst_n = 1;
-    #20 wrst_n = 1;
+    #10 rrst_n = 0;wrst_n = 0;
+    #10 wrst_n = 1;rrst_n = 1;
   end
   
   

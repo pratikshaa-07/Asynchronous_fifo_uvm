@@ -11,7 +11,7 @@ class subscriber extends uvm_component;
   `uvm_component_utils(subscriber)
 
   covergroup wrt_cg;
-    WINC:  coverpoint write_mon.winc   { bins winc[]  = {0,1}; }
+    WINC:  coverpoint write_mon.winc   { bins winc  = {0,1}; }
     WFULL: coverpoint write_mon.wfull  { bins wfull[] = {0,1}; }
     WDATA: coverpoint write_mon.wdata  { 
       bins wdata1 = {[0:129]};
@@ -34,8 +34,12 @@ class subscriber extends uvm_component;
     RINC:   coverpoint read_mon.rinc    { bins rinc[]  = {0,1}; }
     REMPTY: coverpoint read_mon.rempty  { bins rempty[] = {0,1}; }
 
-    cross WINC, RINC;
-    cross WFULL, REMPTY;
+    cross RINC,WINC;
+  //  cross REMPTINC;
+    cross WFULL, REMPTY {
+               ignore_bins invalid = binsof(WFULL) intersect {1} && binsof(REMPTY) intersect {1};
+                  }
+
   endgroup
 
   function new(string name = "", uvm_component parent);

@@ -1,3 +1,4 @@
+`include "define.sv"
 class fifo_test extends uvm_test;
   `uvm_component_utils(fifo_test)
   

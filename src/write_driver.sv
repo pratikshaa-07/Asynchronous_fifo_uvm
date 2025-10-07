@@ -19,7 +19,7 @@ class write_driver extends uvm_driver#(wrt_seq_item);
    vif.wr_drv_cb.winc<=req.winc;
    i++;
    `uvm_info("DRIVER", $sformatf("[WRITE- DRIVER-%0d] SENT: wdata = %0d win = %0d",i,req.wdata,req.winc), UVM_LOW);
-   repeat(1) 
+   repeat(2) 
      begin
        @(vif.wr_drv_cb);
      end
