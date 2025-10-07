@@ -64,7 +64,7 @@ interface inf(input wclk, rclk, wrst_n, rrst_n);
 //stablity check for rdata when rinc goes from 1-0
   property p2;
     @(posedge rclk) disable iff (!rrst_n)
-      ($fell(rinc) && (!rempty))|->$stable(rdata);
+      ($fell(rinc) && (!rempty))|=>$stable(rdata);
   endproperty
         
    rdata_stability_check:
@@ -112,7 +112,7 @@ interface inf(input wclk, rclk, wrst_n, rrst_n);
   //empty check
   property p6;
   @(posedge rclk) disable iff (!wrst_n)
-  (!winc && rinc)[*16]|->rempty;
+  (!winc && rinc)[*16]|=>rempty;
   endproperty
 
   rempty_check:

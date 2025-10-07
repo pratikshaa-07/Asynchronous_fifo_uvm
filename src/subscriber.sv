@@ -29,13 +29,18 @@ class subscriber extends uvm_component;
   endgroup
 
   covergroup wr_rd_cg;
-    WINC:   coverpoint write_mon.winc   { bins winc[]  = {0,1}; }
-    WFULL:  coverpoint write_mon.wfull  { bins wfull[] = {0,1}; }
-    RINC:   coverpoint read_mon.rinc    { bins rinc[]  = {0,1}; }
-    REMPTY: coverpoint read_mon.rempty  { bins rempty[] = {0,1}; }
+    WINC:   coverpoint write_mon.winc   { bins winc  = {0,1}; }
+    WFULL:  coverpoint write_mon.wfull  { bins wfull = {0,1}; }
+    RINC:   coverpoint read_mon.rinc    { bins rinc  = {0,1}; }
+    REMPTY: coverpoint read_mon.rempty  { bins rempty= {0,1}; }
 
-    cross RINC,WINC;
-  //  cross REMPTINC;
+    cross RINC,REMPTY {
+        bins empty_hits = binsof(RINC) intersect {1} && binsof(REMPTY) intersect {1};
+    }
+    cross WINC,WFULL {
+        bins wfull_hits = binsof(WFULL) intersect {1} && binsof(WFULL) intersect {1};
+    }
+
     cross WFULL, REMPTY {
                ignore_bins invalid = binsof(WFULL) intersect {1} && binsof(REMPTY) intersect {1};
                   }
