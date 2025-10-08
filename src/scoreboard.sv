@@ -4,7 +4,7 @@ class scoreboard extends uvm_scoreboard;
   uvm_tlm_analysis_fifo#(rd_seq_item) read_fifo;
   uvm_tlm_analysis_fifo#(wrt_seq_item) write_fifo;
 
-  int depth = 1 << `ASIZE-1;
+  int depth = 16;
   bit [`DSIZE-1:0] fifo_mem[$];
   bit [`DSIZE-1:0] rd_op;
 
