@@ -21,7 +21,7 @@ class read_monitor extends uvm_monitor;
   task run_phase(uvm_phase phase);
     i=0;
     super.run_phase(phase);
-    repeat(5)
+    repeat(4)
       begin
       @(vif.rd_mon_cb);
       end
@@ -34,7 +34,7 @@ class read_monitor extends uvm_monitor;
         read_port.write(req);
         i++;
         `uvm_info("READ MONITOR", $sformatf("[READ-MONITOR-%0d] CAPTURED: rdata = %0d rempty = %0d rinc = %0d",i,req.rdata,req.rempty,req.rinc), UVM_LOW);
-        repeat(2)
+        repeat(1)
           begin
             @(vif.rd_mon_cb);
           end
