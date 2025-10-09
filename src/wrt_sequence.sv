@@ -7,7 +7,7 @@ class wrt_base_seq extends uvm_sequence #(wrt_seq_item);
   endfunction
   
   virtual task body();
-    repeat(100)
+    repeat(20)
       begin
         `uvm_do_with(req,{req.winc==1'b1;})
       end
@@ -25,7 +25,7 @@ class full_write extends uvm_sequence #(wrt_seq_item);
   endfunction 
   
   virtual task body();
-    repeat(100)
+    repeat(20)
       begin
         `uvm_do_with(req,{req.winc==1'b1;})
       end
@@ -42,7 +42,7 @@ class no_write extends uvm_sequence #(wrt_seq_item);
   endfunction 
   
   virtual task body();
-    repeat(100)
+    repeat(10)
       begin
         `uvm_do_with(req,{req.winc==1'b0;})
       end
@@ -59,11 +59,27 @@ class wrt_dist extends uvm_sequence #(wrt_seq_item);
   endfunction
   
   virtual task body();
-    repeat(100)
+    repeat(10)
       begin
         `uvm_do_with(req, { req.winc dist { 1 := 80, 0 := 20 }; })
       end
   endtask
 endclass
 
+//write then read 
 
+class normal_wrt extends uvm_sequence #(wrt_seq_item);
+  wrt_seq_item req;
+  `uvm_object_utils(normal_wrt)
+  
+  function new(string name="");
+    super.new(name);
+  endfunction
+  
+  virtual task body();
+    repeat(10)
+      begin
+        `uvm_do_with(req,{req.winc==1'b1;})
+      end
+  endtask
+endclass
